@@ -1071,7 +1071,7 @@ main(int ac, char **av)
 	platform_disable_tracing(0);	/* strict=no */
 
 #ifdef WITH_OPENSSL
-	OpenSSL_add_all_algorithms();
+	OPENSSL_init_crypto(OPENSSH_OPENSSL_INIT_OPTS, NULL);
 #endif
 
 	__progname = ssh_get_progname(av[0]);

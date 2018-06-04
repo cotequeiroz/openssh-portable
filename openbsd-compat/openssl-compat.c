@@ -22,11 +22,6 @@
 #include <stdarg.h>
 #include <string.h>
 
-#ifdef USE_OPENSSL_ENGINE
-# include <openssl/engine.h>
-# include <openssl/conf.h>
-#endif
-
 #include "log.h"
 
 #include "openssl-compat.h"
@@ -65,25 +60,5 @@ ssh_compatible_openssl(long headerver, long libver)
 		return 1;
 	return 0;
 }
-
-#ifdef	USE_OPENSSL_ENGINE
-void
-ssh_OpenSSL_add_all_algorithms(void)
-{
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	OpenSSL_add_all_algorithms();
-
-	/* Enable use of crypto hardware */
-	ENGINE_load_builtin_engines();
-#if OPENSSL_VERSION_NUMBER < 0x10001000L
-	ENGINE_register_all_complete();
-#endif
-	OPENSSL_config(NULL);
-#else
-	OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_DIGESTS |
-	    OPENSSL_INIT_ADD_ALL_DIGESTS | OPENSSL_INIT_LOAD_CONFIG, NULL);
-#endif
-}
-#endif
 
 #endif /* WITH_OPENSSL */

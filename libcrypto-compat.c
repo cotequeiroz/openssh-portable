@@ -13,6 +13,7 @@
 
 #include <string.h>
 #include <openssl/engine.h>
+#include <openssl/conf.h>
 
 static void *OPENSSL_zalloc(size_t num)
 {
@@ -21,6 +22,27 @@ static void *OPENSSL_zalloc(size_t num)
     if (ret != NULL)
         memset(ret, 0, num);
     return ret;
+}
+
+int OPENSSL_init_crypto(uint64_t opts, void *not_implemented)
+{
+	/* the opts implemented here are not complete.
+	 * Only options necessary for openssh are implemented.
+	 * OPENSSL_INIT_LOAD_CRYPTO_STRINGS is not treated as default here.
+	 */
+	OpenSSL_add_all_algorithms();
+
+	if (opts & OPENSSL_INIT_LOAD_CRYPTO_STRINGS) {
+		ERR_load_crypto_strings();
+	}
+	if (opts & OPENSSL_INIT_ENGINE_ALL_BUILTIN) {
+		ENGINE_load_builtin_engines();
+		ENGINE_register_all_complete();
+	}
+	if (opts & OPENSSL_INIT_LOAD_CONFIG) {
+		OPENSSL_config(NULL);
+	}
+	return 1;
 }
 
 int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)

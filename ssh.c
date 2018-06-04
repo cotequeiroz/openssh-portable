@@ -816,7 +816,7 @@ main(int ac, char **av)
 			fprintf(stderr, "%s, %s\n",
 			    SSH_RELEASE,
 #ifdef WITH_OPENSSL
-			    SSLeay_version(SSLEAY_VERSION)
+			    OpenSSL_version(OPENSSL_VERSION)
 #else
 			    "without OpenSSL"
 #endif
@@ -1037,8 +1037,8 @@ main(int ac, char **av)
 	host_arg = xstrdup(host);
 
 #ifdef WITH_OPENSSL
-	OpenSSL_add_all_algorithms();
-	ERR_load_crypto_strings();
+	OPENSSL_init_crypto(OPENSSH_OPENSSL_INIT_OPTS |
+			    OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
 #endif
 
 	/* Initialize the command to execute on remote host. */
@@ -1083,7 +1083,7 @@ main(int ac, char **av)
 	if (debug_flag)
 		logit("%s, %s", SSH_RELEASE,
 #ifdef WITH_OPENSSL
-		    SSLeay_version(SSLEAY_VERSION)
+		    OpenSSL_version(OPENSSL_VERSION)
 #else
 		    "without OpenSSL"
 #endif
