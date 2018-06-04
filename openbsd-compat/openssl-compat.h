@@ -25,6 +25,11 @@
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
 
+#ifdef USE_OPENSSL_ENGINE
+# include <openssl/engine.h>
+# include <openssl/conf.h>
+#endif
+
 int ssh_compatible_openssl(long, long);
 
 #if (OPENSSL_VERSION_NUMBER <= 0x0090805fL)
@@ -75,26 +80,13 @@ void ssh_aes_ctr_iv(EVP_CIPHER_CTX *, int, u_char *, size_t);
 # endif
 #endif
 
-/*
- * We overload some of the OpenSSL crypto functions with ssh_* equivalents
- * to automatically handle OpenSSL engine initialisation.
- *
- * In order for the compat library to call the real functions, it must
- * define SSH_DONT_OVERLOAD_OPENSSL_FUNCS before including this file and
- * implement the ssh_* equivalents.
- */
-#ifndef SSH_DONT_OVERLOAD_OPENSSL_FUNCS
-
-# ifdef USE_OPENSSL_ENGINE
-#  ifdef OpenSSL_add_all_algorithms
-#   undef OpenSSL_add_all_algorithms
-#  endif
-#  define OpenSSL_add_all_algorithms()  ssh_OpenSSL_add_all_algorithms()
-# endif
-
-void ssh_OpenSSL_add_all_algorithms(void);
-
-#endif	/* SSH_DONT_OVERLOAD_OPENSSL_FUNCS */
+#ifdef USE_OPENSSL_ENGINE
+# define OPENSSH_OPENSSL_INIT_OPTS \
+				OPENSSL_INIT_LOAD_CONFIG | \
+				OPENSSL_INIT_ENGINE_ALL_BUILTIN
+#else
+# define OPENSSH_OPENSSL_INIT_OPTS 0
+#endif
 
 #endif /* WITH_OPENSSL */
 #endif /* _OPENSSL_COMPAT_H */
