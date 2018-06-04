@@ -2382,7 +2382,7 @@ main(int argc, char **argv)
 
 	__progname = ssh_get_progname(argv[0]);
 
-#ifdef WITH_OPENSSL
+#if defined(WITH_OPENSSL) && OPENSSL_VERSION_NUMBER < 0x10100000L
 	OpenSSL_add_all_algorithms();
 #endif
 	log_init(argv[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
