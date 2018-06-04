@@ -224,7 +224,9 @@ main(int argc, char **argv)
 		fatal("could not open any host key");
 
 #ifdef WITH_OPENSSL
+# if OPENSSL_VERSION_NUMBER < 0x10100000L
 	OpenSSL_add_all_algorithms();
+# endif
 	arc4random_buf(rnd, sizeof(rnd));
 	RAND_seed(rnd, sizeof(rnd));
 #endif
