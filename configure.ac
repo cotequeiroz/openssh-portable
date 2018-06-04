@@ -2626,8 +2626,13 @@ if test "x$openssl" = "xyes" ; then
 		if(fd == NULL)
 			exit(1);
 
+	#if OPENSSL_VERSION_NUMBER < 0x10100000L
 		if ((rc = fprintf(fd, "%08lx (%s)\n", (unsigned long)SSLeay(),
 		    SSLeay_version(SSLEAY_VERSION))) < 0)
+	#else
+		if ((rc = fprintf(fd, "%08lx (%s)\n", (unsigned long)OpenSSL_version_num(),
+		    OpenSSL_version(OPENSSL_VERSION))) < 0)
+	#endif
 			exit(1);
 
 		exit(0);
@@ -2640,9 +2645,10 @@ if test "x$openssl" = "xyes" ; then
 					AC_MSG_ERROR([OpenSSL >= 1.0.1 required (have "$ssl_library_ver")])
 			                ;;
 				100*)   ;; # 1.0.x
+				101*)   ;; # 1.1.x
 				200*)   ;; # LibreSSL
 			        *)
-					AC_MSG_ERROR([OpenSSL >= 1.1.0 is not yet supported (have "$ssl_library_ver")])
+					AC_MSG_ERROR([OpenSSL version is not yet supported (have "$ssl_library_ver")])
 			                ;;
 			esac
 			AC_MSG_RESULT([$ssl_library_ver])
@@ -2664,7 +2670,11 @@ if test "x$openssl" = "xyes" ; then
 	#include <openssl/opensslv.h>
 	#include <openssl/crypto.h>
 		]], [[
+	#if OPENSSL_VERSION_NUMBER < 0x10100000L
 		exit(SSLeay() == OPENSSL_VERSION_NUMBER ? 0 : 1);
+	#else
+		exit(OpenSSL_version_num() == OPENSSL_VERSION_NUMBER ? 0 : 1);
+	#endif
 		]])],
 		[
 			AC_MSG_RESULT([yes])
@@ -2692,7 +2702,7 @@ if test "x$openssl" = "xyes" ; then
 	AC_MSG_CHECKING([if programs using OpenSSL functions will link])
 	AC_LINK_IFELSE(
 		[AC_LANG_PROGRAM([[ #include <openssl/evp.h> ]],
-		[[ SSLeay_add_all_algorithms(); ]])],
+		[[ EVP_CIPHER_CTX_new(); ]])],
 		[
 			AC_MSG_RESULT([yes])
 		],
@@ -2703,7 +2713,7 @@ if test "x$openssl" = "xyes" ; then
 			AC_MSG_CHECKING([if programs using OpenSSL need -ldl])
 			AC_LINK_IFELSE(
 				[AC_LANG_PROGRAM([[ #include <openssl/evp.h> ]],
-				[[ SSLeay_add_all_algorithms(); ]])],
+				[[ EVP_CIPHER_CTX_new(); ]])],
 				[
 					AC_MSG_RESULT([yes])
 				],
