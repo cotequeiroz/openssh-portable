@@ -530,7 +530,7 @@ main(int argc, char **argv)
 	seed_rng();
 
 #ifdef WITH_OPENSSL
-	OpenSSL_add_all_algorithms();
+	OPENSSL_init_crypto(OPENSSH_OPENSSL_INIT_OPTS, NULL);
 #endif
 
 	setvbuf(stdout, NULL, _IOLBF, 0);

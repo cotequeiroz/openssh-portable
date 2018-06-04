@@ -18,8 +18,10 @@ void sshkey_fuzz_tests(void);
 void
 tests(void)
 {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	OpenSSL_add_all_algorithms();
 	ERR_load_CRYPTO_strings();
+#endif
 
 	sshkey_tests();
 	sshkey_file_tests();
