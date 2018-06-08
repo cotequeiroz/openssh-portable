@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.316 2018/06/01 04:21:29 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.317 2018/06/06 18:29:18 markus Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -898,7 +898,8 @@ do_fingerprint(struct passwd *pw)
 {
 	FILE *f;
 	struct sshkey *public = NULL;
-	char *comment = NULL, *cp, *ep, line[SSH_MAX_PUBKEY_BYTES];
+	char *comment = NULL, *cp, *ep, *line = NULL;
+	size_t linesize = 0;
 	int i, invalid = 1;
 	const char *path;
 	u_long lnum = 0;
@@ -913,7 +914,8 @@ do_fingerprint(struct passwd *pw)
 	} else if ((f = fopen(path, "r")) == NULL)
 		fatal("%s: %s: %s", __progname, path, strerror(errno));
 
-	while (read_keyfile_line(f, path, line, sizeof(line), &lnum) == 0) {
+	while (getline(&line, &linesize, f) != -1) {
+		lnum++;
 		cp = line;
 		cp[strcspn(cp, "\n")] = '\0';
 		/* Trim leading space and comments */
@@ -933,6 +935,7 @@ do_fingerprint(struct passwd *pw)
 		 */
 		if (lnum == 1 && strcmp(identity_file, "-") != 0 &&
 		    strstr(cp, "PRIVATE KEY") != NULL) {
+			free(line);
 			fclose(f);
 			fingerprint_private(path);
 			exit(0);
@@ -979,6 +982,7 @@ do_fingerprint(struct passwd *pw)
 		invalid = 0; /* One good key in the file is sufficient */
 	}
 	fclose(f);
+	free(line);
 
 	if (invalid)
 		fatal("%s is not a public key file.", path);
@@ -2032,8 +2036,9 @@ do_show_cert(struct passwd *pw)
 	struct stat st;
 	int r, is_stdin = 0, ok = 0;
 	FILE *f;
-	char *cp, line[SSH_MAX_PUBKEY_BYTES];
+	char *cp, *line = NULL;
 	const char *path;
+	size_t linesize = 0;
 	u_long lnum = 0;
 
 	if (!have_identity)
@@ -2049,7 +2054,8 @@ do_show_cert(struct passwd *pw)
 	} else if ((f = fopen(identity_file, "r")) == NULL)
 		fatal("fopen %s: %s", identity_file, strerror(errno));
 
-	while (read_keyfile_line(f, path, line, sizeof(line), &lnum) == 0) {
+	while (getline(&line, &linesize, f) != -1) {
+		lnum++;
 		sshkey_free(key);
 		key = NULL;
 		/* Trim leading space and comments */
@@ -2074,6 +2080,7 @@ do_show_cert(struct passwd *pw)
 			printf("%s:%lu:\n", path, lnum);
 		print_cert(key);
 	}
+	free(line);
 	sshkey_free(key);
 	fclose(f);
 	exit(ok ? 0 : 1);
@@ -2105,7 +2112,8 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 {
 	struct sshkey *key = NULL;
 	u_long lnum = 0;
-	char *path, *cp, *ep, line[SSH_MAX_PUBKEY_BYTES];
+	char *path, *cp, *ep, *line = NULL;
+	size_t linesize = 0;
 	unsigned long long serial, serial2;
 	int i, was_explicit_key, was_sha1, r;
 	FILE *krl_spec;
@@ -2120,8 +2128,8 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 
 	if (!quiet)
 		printf("Revoking from %s\n", path);
-	while (read_keyfile_line(krl_spec, path, line, sizeof(line),
-	    &lnum) == 0) {
+	while (getline(&line, &linesize, krl_spec) != -1) {
+		lnum++;
 		was_explicit_key = was_sha1 = 0;
 		cp = line + strspn(line, " \t");
 		/* Trim trailing space, comments and strip \n */
@@ -2221,6 +2229,7 @@ update_krl_from_file(struct passwd *pw, const char *file, int wild_ca,
 	}
 	if (strcmp(path, "-") != 0)
 		fclose(krl_spec);
+	free(line);
 	free(path);
 }
 
