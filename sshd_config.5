@@ -33,8 +33,8 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.271 2018/06/06 18:24:00 djm Exp $
-.Dd $Mdocdate: June 6 2018 $
+.\" $OpenBSD: sshd_config.5,v 1.275 2018/06/09 03:18:11 djm Exp $
+.Dd $Mdocdate: June 9 2018 $
 .Dt SSHD_CONFIG 5
 .Os
 .Sh NAME
@@ -66,12 +66,14 @@ the session's
 .Xr environ 7 .
 See
 .Cm SendEnv
+and
+.Cm SetEnv
 in
 .Xr ssh_config 5
 for how to configure the client.
 The
 .Ev TERM
-environment variable is always sent whenever the client
+environment variable is always accepted whenever the client
 requests a pseudo-terminal as it is required by the protocol.
 Variables are specified by name, which may contain the wildcard characters
 .Ql *
@@ -1136,6 +1138,7 @@ Available keywords are
 .Cm RekeyLimit ,
 .Cm RevokedKeys ,
 .Cm RDomain ,
+.Cm SetEnv ,
 .Cm StreamLocalBindMask ,
 .Cm StreamLocalBindUnlink ,
 .Cm TrustedUserCAKeys ,
@@ -1220,7 +1223,7 @@ The wildcard
 .Sq *
 can also be used in place of a port number to allow all ports.
 By default all port forwarding listen requests are permitted.
-Note that
+Note that the
 .Cm GatewayPorts
 option may further restrict which addresses may be listened on.
 .It Cm PermitOpen
@@ -1443,6 +1446,21 @@ will be bound to this
 If the routing domain is set to
 .Cm \&%D ,
 then the domain in which the incoming connection was received will be applied.
+.It Cm SetEnv
+Specifies one or more environment variables to set in child sessions started
+by
+.Xr sshd 8
+as
+.Dq NAME=VALUE .
+The environment value may be quoted (e.g. if it contains whitespace
+characters).
+Environment variables set by
+.Cm SetEnv
+override the default environment and any variables specified by the user
+via
+.Cm AcceptEnv
+or
+.Cm PermitUserEnvironment .
 .It Cm StreamLocalBindMask
 Sets the octal file creation mode mask
 .Pq umask
